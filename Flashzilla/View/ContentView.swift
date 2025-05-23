@@ -6,16 +6,13 @@
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(\.accessibilityReduceTransparency) var reduceTransparency
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+        CardView(card: .example)
     }
 }
+
 
 #Preview {
     ContentView()
