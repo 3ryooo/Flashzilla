@@ -56,6 +56,10 @@ struct EditCards: View {
         if let data = try? JSONEncoder().encode(cards) {
             UserDefaults.standard.set(data, forKey: "Cards")
         }
+        
+        newPrompt = ""
+        newAnswer = ""
+        
     }
     
     func addCard() {
