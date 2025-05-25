@@ -4,19 +4,24 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
-    @Environment(\.accessibilityReduceTransparency) var reduceTransparency
-    @Environment(\.accessibilityDifferentiateWithoutColor) var accessibilityDifferentiateWithoutColor
-    @Environment(\.scenePhase) var scenePhase
-    @Environment(\.accessibilityVoiceOverEnabled) var accessibilityVoiceOverEnabled
-    
-    @State private var isActive = true
-    @State private var cards = [Card]()
-    @State private var timeRemaining = 100
-    @State private var showingEditScreen = false
     
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    
+    @Environment(\.accessibilityReduceTransparency) var reduceTransparency
+    @Environment(\.accessibilityDifferentiateWithoutColor) var accessibilityDifferentiateWithoutColor
+    @Environment(\.accessibilityVoiceOverEnabled) var accessibilityVoiceOverEnabled
+    @Environment(\.scenePhase) var scenePhase
+    @Environment(\.modelContext) private var modelContext
+    
+    @Query private var cardsData: [Card]
+    
+    @State private var cards = [Card]()
+    @State private var isActive = true
+    @State private var timeRemaining = 100
+    @State private var showingEditScreen = false
     
     var body: some View {
         ZStack {
@@ -32,15 +37,16 @@ struct ContentView: View {
                     .background(.black.opacity(0.75))
                     .clipShape(.capsule)
                 ZStack {
-                    ForEach(0..<cards.count, id: \.self) { index in
-                        CardView(card: cards[index]) {
+                    ForEach(cards) { card in
+                        CardView(card: card) {
                             withAnimation {
-                                removeCard(at: index)
+                                removeCard(card: card)
                             }
                         }
-                        .stacked(at: index, in: cards.count)
-                        .allowsHitTesting(index == cards.count - 1)
-                        .accessibilityHidden(index < cards.count - 1)
+                        .id(card.id)
+                        .stacked(at: cards.firstIndex(where: { $0.id == card.id }) ?? 0, in: cards.count)
+                        .allowsHitTesting(cards.last?.id == card.id)
+                        .accessibilityHidden(cards.last?.id != card.id)
                     }
                 }
                 .allowsHitTesting(timeRemaining > 0)
@@ -66,6 +72,16 @@ struct ContentView: View {
                             .background(.black.opacity(0.7))
                             .clipShape(.circle)
                     }
+                    Button("debug") {
+                        print("--- cardsData ---")
+                        for card in cardsData {
+                            print("Prompt: \(card.prompt), Answer: \(card.answer)")
+                        }
+                        print("--- cards ---")
+                        for card in cards {
+                            print("Prompt: \(card.prompt), Answer: \(card.answer)")
+                        }
+                    }
                 }
                 
                 Spacer()
@@ -79,7 +95,9 @@ struct ContentView: View {
                     HStack {
                         Button {
                             withAnimation {
-                                removeCard(at: cards.count - 1)
+                                if let card = cards.last {
+                                    removeCard(card: card)
+                                }
                             }
                         } label: {
                             Image(systemName: "xmark.circle")
@@ -94,7 +112,9 @@ struct ContentView: View {
                         
                         Button {
                             withAnimation {
-                                removeCard(at: cards.count - 1)
+                                if let card = cards.last {
+                                    removeCard(card: card)
+                                }
                             }
                         } label: {
                             Image(systemName: "checkmark.circle")
@@ -131,11 +151,15 @@ struct ContentView: View {
         .onAppear(perform: resetCards)
     }
     
-    func removeCard(at index: Int) {
-        guard index >= 0 else { return }
-        cards.remove(at: index)
+    func removeCard(card: Card) {
+        print("Before removal - cards count: \(cards.count)")
+        if let index = cards.firstIndex(where: { $0.id == card.id }) {
+            cards.remove(at: index)
+            print("After removal - cards count: \(cards.count), removed card ID: \(card.id)")
+        }
         if cards.isEmpty {
             isActive = false
+            print("Cards are now empty, isActive set to false")
         }
     }
     
@@ -146,11 +170,8 @@ struct ContentView: View {
     }
     
     func loadData() {
-        if let data = UserDefaults.standard.data(forKey: "Cards") {
-            if let decoded = try? JSONDecoder().decode([Card].self, from: data) {
-                cards = decoded
-            }
-        }
+        cards = cardsData
+        print("test")
     }
     
     

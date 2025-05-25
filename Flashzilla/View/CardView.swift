@@ -4,14 +4,17 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct CardView: View {
     
     @State private var isShowingAnswer = false
     @State private var offset = CGSize.zero
+    @State private var cards = [Card]()
     
     @Environment(\.accessibilityDifferentiateWithoutColor) var accessibilityDifferentiateWithoutColor
     @Environment(\.accessibilityVoiceOverEnabled) var accessibilityVoiceOverEnabled
+    @Environment(\.modelContext) private var modelContext
     
     let card: Card
     
@@ -67,6 +70,7 @@ struct CardView: View {
                 .onEnded { _ in
                     if abs(offset.width) > 100 {
                         removal?()
+                        offset = .zero
                     } else {
                         offset = .zero
                     }
@@ -77,8 +81,10 @@ struct CardView: View {
         }
         .animation(.bouncy, value: offset)
     }
+    
 }
 
 #Preview {
-    CardView(card: .example)
+    CardView(card: Card(prompt: "Sample Prompt", answer: "Sample Answer"))
+        .modelContainer(for: Card.self)
 }
