@@ -38,9 +38,9 @@ struct ContentView: View {
                     .clipShape(.capsule)
                 ZStack {
                     ForEach(cards) { card in
-                        CardView(card: card) {
+                        CardView(card: card) { isCorrect in
                             withAnimation {
-                                removeCard(card: card)
+                                removeCard(card: card, isWrong: !isCorrect)
                             }
                         }
                         .id(card.id)
@@ -86,7 +86,7 @@ struct ContentView: View {
                         Button {
                             withAnimation {
                                 if let card = cards.last {
-                                    removeCard(card: card)
+                                    removeCard(card: card, isWrong: true)
                                 }
                             }
                         } label: {
@@ -141,10 +141,18 @@ struct ContentView: View {
         .onAppear(perform: resetCards)
     }
     
-    func removeCard(card: Card) {
-        if let index = cards.firstIndex(where: { $0.id == card.id }) {
-            cards.remove(at: index)
+    func removeCard(card: Card, isWrong: Bool = false) {
+        guard let index = cards.firstIndex(where: { $0.id == card.id }) else { return }
+
+        let removedCard = cards.remove(at: index)
+
+        if isWrong {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                 let newCard = Card(id: UUID(), prompt: removedCard.prompt, answer: removedCard.answer)
+                 cards.insert(newCard, at: 0)
+            }
         }
+
         if cards.isEmpty {
             isActive = false
         }
