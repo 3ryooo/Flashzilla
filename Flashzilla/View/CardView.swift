@@ -70,7 +70,6 @@ struct CardView: View {
                 .onEnded { _ in
                     if abs(offset.width) > 100 {
                         removal?()
-                        offset = .zero
                     } else {
                         offset = .zero
                     }

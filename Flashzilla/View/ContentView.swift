@@ -72,16 +72,6 @@ struct ContentView: View {
                             .background(.black.opacity(0.7))
                             .clipShape(.circle)
                     }
-                    Button("debug") {
-                        print("--- cardsData ---")
-                        for card in cardsData {
-                            print("Prompt: \(card.prompt), Answer: \(card.answer)")
-                        }
-                        print("--- cards ---")
-                        for card in cards {
-                            print("Prompt: \(card.prompt), Answer: \(card.answer)")
-                        }
-                    }
                 }
                 
                 Spacer()
@@ -152,14 +142,11 @@ struct ContentView: View {
     }
     
     func removeCard(card: Card) {
-        print("Before removal - cards count: \(cards.count)")
         if let index = cards.firstIndex(where: { $0.id == card.id }) {
             cards.remove(at: index)
-            print("After removal - cards count: \(cards.count), removed card ID: \(card.id)")
         }
         if cards.isEmpty {
             isActive = false
-            print("Cards are now empty, isActive set to false")
         }
     }
     
@@ -171,7 +158,6 @@ struct ContentView: View {
     
     func loadData() {
         cards = cardsData
-        print("test")
     }
     
     
