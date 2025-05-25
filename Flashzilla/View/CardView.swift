@@ -10,6 +10,7 @@ struct CardView: View {
     
     @State private var isShowingAnswer = false
     @State private var offset = CGSize.zero
+    @GestureState private var isDragging = false
     @State private var cards = [Card]()
     
     @Environment(\.accessibilityDifferentiateWithoutColor) var accessibilityDifferentiateWithoutColor
@@ -33,7 +34,7 @@ struct CardView: View {
                     accessibilityDifferentiateWithoutColor
                     ? nil
                     : RoundedRectangle(cornerRadius: 25)
-                        .fill(offset.width > 0 ? .green : .red)
+                        .fill(isDragging && offset.width != 0 ? (offset.width > 0 ? .green : .red) : Color.clear)
                 )
                 .shadow(radius: 10)
             
@@ -64,6 +65,9 @@ struct CardView: View {
         .accessibilityAddTraits(.isButton)
         .gesture(
             DragGesture()
+                .updating($isDragging) { value, state, transaction in
+                    state = true
+                }
                 .onChanged { gesture in
                     offset = gesture.translation
                 }
